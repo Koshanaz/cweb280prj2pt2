@@ -1,0 +1,25 @@
+{
+   "name": "lo4serverapi",
+   "version": "0.0.1",
+   "description": "Awesome project developed with TypeORM.",
+   "devDependencies": {
+      "@nestjs/common": "^8.1.1",
+      "@types/node": "^8.0.29",
+      "ts-node": "3.3.0",
+      "typescript": "3.3.3333"
+   },
+   "dependencies": {
+      "body-parser": "^1.18.1",
+      "class-validator": "^0.13.2",
+      "cors": "^2.8.5",
+      "express": "^4.15.4",
+      "http-errors": "^2.0.0",
+      "reflect-metadata": "^0.1.10",
+      "rxjs": "^7.4.0",
+      "sqlite3": "^5.0.2",
+      "typeorm": "0.2.38"
+   },
+   "scripts": {
+      "start": "ts-node src/index.ts"
+   }
+}
