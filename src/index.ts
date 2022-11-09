@@ -3,22 +3,18 @@ import {createConnection} from "typeorm";
 import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as createError from "http-errors";
-import {Request, Response} from "express";
-import {Joke} from "./entity/Joke";
 import * as process from "process";
 import {JokeController} from './controller/JokeController';
 import {RouteDefinition} from './decorator/RouteDefinition';
-import {create} from "domain";
 import * as cors from 'cors';
 import {JokeUser} from "./entity/JokeUser";
 
-// CORS options
 const corsOptions = {
-    origin: /localhost\:\d{4}$/i, //localhost any 4 digit port
+    origin: /localhost\:\d{4}$/i,
     credentials: true,
-    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization,Access-Control-Allow-Credentials',
+    allowedHeaders: 'Origin,X-Requested-With,Content-Type,Accept,Authorization',
     methods: 'GET,PUT,POST,DELETE',
-    maxAge: 43200, // 12 hours in seconds
+    maxAge: 43200,
 }
 
 createConnection().then(async connection => {
@@ -26,18 +22,14 @@ createConnection().then(async connection => {
     const app = express();
     app.use(bodyParser.json());
 
-    // CORS
-    app.use(cors(corsOptions)); // enable CORS for all handlers
-/*
-    app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-        if(req.xhr && req.accepts('application/json')) next();
-        else next(createError(406));
-    });
+    app.use(cors(corsOptions));
 
- */
     app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if(!req.headers.authorization) {
+            next(createError(401));
+        } else
         if(req.headers.authorization.toString().startsWith("Bearer")) next();
-        else next(createError(406));
+        else next(createError(401));
     });
 
     app.options('*', cors(corsOptions));

@@ -1,14 +1,8 @@
 import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
 import {
     IsOptional,
-    Length,
-    Matches,
-    Contains,
-    IsIn,
-    IsInt,
     Min,
     Max,
-    MaxLength,
     IsNotEmpty,
     IsEnum
 } from 'class-validator';

@@ -5,7 +5,6 @@ import {JokeUser} from "../entity/JokeUser";
 import {Controller} from '../decorator/Controller';
 import {Route} from '../decorator/Route';
 import * as createError from "http-errors";
-import { NotFoundException } from '@nestjs/common';
 import {IsNotEmpty, Max, Min, validate, ValidatorOptions} from 'class-validator';
 
 class UserRating {
@@ -68,7 +67,7 @@ export class JokeController {
         if(sortBy === 'id' || sortBy === 'type' || sortBy === 'averageRating' || sortBy === 'ratingCount') {
             return this.jokeRepository.find({
                 order: {
-                    // Fancy use of a variable as a JSON key
+                    // Fancy use of a variable as a JSON key 8)
                     [sortBy]: "ASC",
                 },
             });
@@ -129,25 +128,25 @@ export class JokeController {
         let jokes = request.body;
         // Check if it's an array of jokes, otherwise add as a normal joke
         if(jokes.jokes) {
-            let jokeCount = 0;
-            let failArray = [];
+            let jokesAdded = 0;
+            let invalidJokes = [];
             for (const joke of jokes.jokes) {
                 const newJoke = Object.assign(new Joke(), joke);
                 const violations = await validate(newJoke, this.validOptions);
                 console.log(violations);
                 if (violations.length) {
                     response.statusCode = 422; // Unprocessable Entity
-                    failArray.push(newJoke);
+                    invalidJokes.push(newJoke);
                 } else {
                     response.statusCode = 201; // Created
-                    jokeCount++;
+                    jokesAdded++;
                     console.log("Joke saved");
                     await this.jokeRepository.save(newJoke);
                 }
             }
             return {
-                "jokesAdded": jokeCount,
-                "invalidJokes": failArray
+                "jokesAdded": jokesAdded,
+                "invalidJokes": invalidJokes
             }
         } else {
             const newJoke = Object.assign(new Joke(), request.body);
@@ -190,5 +189,4 @@ export class JokeController {
             next(createError(422));
         }
     }
-
 }
