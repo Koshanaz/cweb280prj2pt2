@@ -4,7 +4,7 @@ import {Student} from '../entity/Student';
 import {Controller} from '../decorator/Controller';
 import {Route} from '../decorator/Route';
 import {validate, ValidatorOptions} from 'class-validator';
-import {User} from "../entity/User";
+import {Joke} from "../entity/Joke";
 @Controller('/students')
 export default class StudentController {
     private studentRepo = getRepository(Student); // Student Repository
@@ -22,7 +22,7 @@ export default class StudentController {
             return this.studentRepo.find(findOptions);
         }
     }
-    
+
     @Route('delete', '/:id')
     async delete(req: Request, res: Response, next: NextFunction) {
         const studentToRemove = await this.studentRepo.findOne(req.params.id);
@@ -57,7 +57,7 @@ export default class StudentController {
 
     @Route('post')
     async save(request: Request, response: Response, next: NextFunction) {
-        // get the metadata/decorations from the User Object and fill with the values in the request body (which does not have any decorations)
+        // get the metadata/decorations from the Joke Object and fill with the values in the request body (which does not have any decorations)
         console.log(request.body.firstName);
         console.log(request.params.firstName);
         const newStudent = Object.assign(new Student(), request.body);

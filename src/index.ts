@@ -4,9 +4,9 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as createError from "http-errors";
 import {Request, Response} from "express";
-import {User} from "./entity/User";
+import {Joke} from "./entity/Joke";
 import * as process from "process";
-import {UserController} from './controller/UserController';
+import {JokeController} from './controller/JokeController';
 import StudentController from "./controller/StudentController";
 import {RouteDefinition} from './decorator/RouteDefinition';
 import {create} from "domain";
@@ -61,7 +61,7 @@ createConnection().then(async connection => {
 
     [
         StudentController,
-        UserController,
+        JokeController,
     ].forEach((controller) => {
     // This is our instantiated class
     // eslint-disable-next-line new-cap
@@ -97,18 +97,6 @@ createConnection().then(async connection => {
     // start express server
     const port = process.env.PORT || 3004;
     app.listen(port);
-
-    // insert new users for test
-    await connection.manager.save(connection.manager.create(User, {
-        firstName: "Timber",
-        lastName: "Saw",
-        age: 27
-    }));
-    await connection.manager.save(connection.manager.create(User, {
-        firstName: "Phantom",
-        lastName: "Assassin",
-        age: 24
-    }));
 
     console.log(`Express server has started on port ${port}. Open http://localhost:${port}/users to see results`);
 
