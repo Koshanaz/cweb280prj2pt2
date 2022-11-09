@@ -1,6 +1,7 @@
 import {getRepository} from "typeorm";
 import {NextFunction, Request, Response} from "express";
 import {Joke} from "../entity/Joke";
+import {JokeUser} from "../entity/JokeUser";
 import {Controller} from '../decorator/Controller';
 import {Route} from '../decorator/Route';
 import * as createError from "http-errors";
@@ -24,10 +25,23 @@ class UserRating {
 export class JokeController {
 
     private jokeRepository = getRepository(Joke);
+    private jokeUserRepository = getRepository(JokeUser);
     private validOptions: ValidatorOptions;
 
     @Route('get')
     async all(request: Request, response: Response, next: NextFunction) {
+        let bearer = request.headers.authorization.replace('Bearer ', '');
+        let jokeUser = await this.jokeUserRepository.findOne({
+            where: {
+                token: [bearer]
+            }
+        })
+        if(!jokeUser) {
+            next(createError(401));
+        }
+        if(jokeUser.accessLevel != 'WRITE' && jokeUser.accessLevel != 'READ') {
+            next(createError(401));
+        }
         return this.jokeRepository.find({
             order: {
                 id: "ASC",
@@ -37,6 +51,18 @@ export class JokeController {
 
     @Route('get', '/:order')
     async allSorts(request: Request, response: Response, next: NextFunction) {
+        let bearer = request.headers.authorization.replace('Bearer ', '');
+        let jokeUser = await this.jokeUserRepository.findOne({
+            where: {
+                token: [bearer]
+            }
+        })
+        if(!jokeUser) {
+            next(createError(401));
+        }
+        if(jokeUser.accessLevel != 'WRITE' && jokeUser.accessLevel != 'READ') {
+            next(createError(401));
+        }
         let sortBy = request.params.order;
         // Check if sortBy is a valid input
         if(sortBy === 'id' || sortBy === 'type' || sortBy === 'averageRating' || sortBy === 'ratingCount') {
@@ -58,14 +84,26 @@ export class JokeController {
 
     @Route('put')
     async update(request: Request, response: Response, next: NextFunction) {
+        let bearer = request.headers.authorization.replace('Bearer ', '');
+        let jokeUser = await this.jokeUserRepository.findOne({
+            where: {
+                token: [bearer]
+            }
+        })
+        if(!jokeUser) {
+            next(createError(401));
+        }
+        if(jokeUser.accessLevel != 'WRITE' && jokeUser.accessLevel != 'READ') {
+            next(createError(401));
+        }
         let userRating = Object.assign(new UserRating(), request.body);
         let violations = await validate(userRating, this.validOptions);
         if(violations.length) {
             response.statusCode = 422// Unprocessable Entity
             return violations;
         } else {
-            let jokeToUpdate = await this.jokeRepository.preload(await this.jokeRepository.findOne(userRating.id));
-            if(!jokeToUpdate) next();
+            let jokeToUpdate = await this.jokeRepository.findOne(userRating.id);
+            if(!jokeToUpdate) next(createError(404));
             else {
                 jokeToUpdate.averageRating = ((jokeToUpdate.averageRating * jokeToUpdate.ratingCount) + userRating.userRating) / (jokeToUpdate.ratingCount + 1);
                 jokeToUpdate.ratingCount++;
@@ -76,6 +114,18 @@ export class JokeController {
 
     @Route('post')
     async save(request: Request, response: Response, next: NextFunction) {
+        let bearer = request.headers.authorization.replace('Bearer ', '');
+        let jokeUser = await this.jokeUserRepository.findOne({
+            where: {
+                token: [bearer]
+            }
+        })
+        if(!jokeUser) {
+            next(createError(401));
+        }
+        if(jokeUser.accessLevel != 'WRITE') {
+            next(createError(401));
+        }
         let jokes = request.body;
         // Check if it's an array of jokes, otherwise add as a normal joke
         if(jokes.jokes) {
@@ -115,9 +165,27 @@ export class JokeController {
 
     @Route('delete', '/:id')
     async remove(request: Request, response: Response, next: NextFunction) {
+        let bearer = request.headers.authorization.replace('Bearer ', '');
+        let jokeUser = await this.jokeUserRepository.findOne({
+            where: {
+                token: [bearer]
+            }
+        })
+        if(!jokeUser) {
+            next(createError(401));
+        }
+        if(jokeUser.accessLevel != 'WRITE') {
+            next(createError(401));
+        }
         if(request.body.id && request.body.id == request.params.id) {
             response.statusCode = 204;
-            return this.jokeRepository.remove(await this.jokeRepository.findOne(request.params.id));
+            let jokeToRemove = await this.jokeRepository.findOne(request.params.id);
+            if(jokeToRemove) {
+                return this.jokeRepository.remove(jokeToRemove);
+            }
+            else {
+                next(createError(422));
+            }
         } else {
             next(createError(422));
         }
